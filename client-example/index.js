@@ -1,6 +1,5 @@
 import SingnalingController from '../client/signaling-controller';
-
-const logger = console;
+import PeerController from '../client/peer-controller';
 
 async function run() {
   // try {
@@ -12,6 +11,8 @@ async function run() {
   //   logger.error('Error accessing media devices.', err);
   // }
   const signalingController = new SingnalingController('ws://localhost:3010');
+  const peerController = new PeerController(signalingController);
+  peerController.connectAll();
 }
 
 run();
