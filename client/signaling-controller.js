@@ -2,7 +2,7 @@
 import SignalingChannel from './signaling-channel';
 import PeerConnection from './peer-connection';
 
-export default class {
+export default class extends EventTarget {
   // Local ID
   #localId
 
@@ -13,6 +13,7 @@ export default class {
   #socket
 
   constructor(signalingUrl) {
+    super();
     // Initialize web socket
     this.#socket = new WebSocket(signalingUrl);
     // Listen for messages from remote
