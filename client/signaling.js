@@ -1,5 +1,5 @@
 
-import SignalingChannel from './signaling-channel';
+// import SignalingChannel from './signaling-channel';
 import PeerConnection from './peer-connection';
 
 export default class extends EventTarget {

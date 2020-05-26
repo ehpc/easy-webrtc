@@ -1,24 +1,47 @@
+import * as signals from '../common/signals';
+
 /**
- * SignalingChannel is a channel for 1-to-1 communication between peers
+ * Communacation channe between local peer and remote peers
  */
-export default class SignalingChannel extends EventTarget {
-  /**
-   * Constructor
-   * @param {string} localId Local peer ID
-   * @param {string} remoteId Remote peer ID
-   * @param {string} signalingUrl Signaling server URL
-   */
-  constructor(localId, remoteId, signalingUrl) {
-    super();
-    this.localId = localId;
-    this.remoteId = remoteId;
-  }
+export default class SignalingChannel {
+  #socket
+
+  #socketPromise
 
   /**
-   * Send message to remote
-   * @param {object} message Message to send to remote
+   * Constructor
+   * @param {string} socketUrl Socket URL
    */
-  send(message) {
-    this.socket.send(JSON.stringify(message));
+  constructor(socketUrl) {
+    this.#socket = new WebSocket(socketUrl);
+    this.#socketPromise = new Promise((resolve) => {
+      this.#socket.addEventListener('open', resolve);
+    });
+  }
+
+  async promisifyWSSignal(signalType, payloadExtractor) {
+    await this.#socketPromise;
+    return new Promise((resolve) => {
+      const handler = (event) => {
+        const { type, payload } = JSON.parse(event.data);
+        switch (type) {
+          case signalType:
+            this.#socket.removeEventListener('message', handler);
+            resolve(payloadExtractor(payload));
+            break;
+          default:
+        }
+      };
+      this.#socket.addEventListener('message', handler);
+      this.#socket.send(signals.createSignal(signalType));
+    });
+  }
+
+  getLocalPeerId() {
+    return this.promisifyWSSignal(signals.TYPE_ID, ({ id }) => id);
+  }
+
+  getRemotePeerIds() {
+    return this.promisifyWSSignal(signals.TYPE_LIST_PEERS, ({ peers }) => peers);
   }
 }
